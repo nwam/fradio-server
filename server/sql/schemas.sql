@@ -4,11 +4,11 @@ USE fradio;
 CREATE TABLE playing ( 
     username VARCHAR(64), 
     spotifyTrackID VARCHAR(64),
-    time DATETIME, 
+    start_time DATETIME, 
     scroll_time TIME
 );
 
-CREATE TABLE auser (
+CREATE TABLE user (
     username VARCHAR(64),
     passwordHash VARCHAR(128),
     spotifyUsername VARCHAR(128),
