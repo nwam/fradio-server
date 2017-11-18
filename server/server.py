@@ -28,7 +28,6 @@ def broadcast():
     scroll_time = request.args.get('scrolltime', type = int)
     start_time = posix_time()
 
-
     # Send query to add broadcast
     broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
                     VALUES(%s, %s, %s, %s)"""
@@ -91,8 +90,6 @@ def listen():
     return response
 
 def send_message_to_listeners(host_spotify_username, message):
-    # format broadcast message
-    message = prepend_message_size(message)
 
     # Get list of listeners
     get_listener_ips = """SELECT ipAddress FROM user WHERE listening = %s"""
@@ -110,7 +107,7 @@ def send_tcp_message(ip, port, message):
     
     if sock is None:
         return None
-    sock.send(bytes(message, ENCODING))
+    sock.send(prepend_message_size(bytes(message, ENCODING)))
     sock.close()
 
     print("Sent message to {}:{}:\n{}".format(ip,port,message))
@@ -139,4 +136,4 @@ def posix_time():
     return int(time.time()*1000)
 
 def prepend_message_size(message):
-    return 
+    return "{}\n{}".format(len(message), message)
