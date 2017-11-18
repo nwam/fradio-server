@@ -56,26 +56,39 @@ def listen():
     listener_spotify_username = request.args.get('listenerspotifyusername', type = str)
     request_ip_address = request.remote_addr
     
-    # Check if listener exists
-    get_listener = """SELECT spotifyUsername FROM user WHERE spotifyUsername = %s"""
-    get_listener_args = (listener_spotify_username,)
-    listner = fraidio.query(get_listener, get_listener_args)
-    if listener == None:
-        # Insert listener
-        insert_listener = """INSERT INTO user (spotifyUsername, listening, ipAddress) \
-                                VALUES (%s, %s, %s);"""
-        insert_listener_args = (listener_spotify_username, rost_spotify_username, request_ip_address)
-        fraidio.transact(insert_listener, insert_listener_args)
+    # Update listener status
+    if user_exists(listener_spotify_username):
+        update_user(listener_spotify_username, host_spotify_username, request_ip_address)
     else:
-        # Set listener status
-        listen = """UPDATE user SET listening = %s, ipAddress = %s WHERE spotifyUsername = %s;"""
-        listen_args = (host_spotify_username, request_ip_address, listener_spotify_username)
-        fradiodb.transact(listen, listen_args)
+        add_user(listener_spotify_username, rost_spotify_username, request_ip_address)
 
+    # Return broadcast info
+    response = get_broadcast_json(host_spotify_username)
+    return response
+
+def user_exists(spotify_username):
+    get_listener = """SELECT spotifyUsername FROM user WHERE spotifyUsername = %s"""
+    get_listener_args = (spotify_username,)
+    listner = fraidio.query(get_listener, get_listener_args)
+    return listener != None
+
+def update_user(user, listening, ip_address):
+    listen = """UPDATE user SET listening = %s, ipAddress = %s WHERE spotifyUsername = %s;"""
+    listen_args = (listening, ip_address, user)
+    return fradiodb.transact(listen, listen_args)
+
+def add_user(user, listening, ip_address):
+    # Insert listener
+    insert_listener = """INSERT INTO user (spotifyUsername, listening, ipAddress) \
+                            VALUES (%s, %s, %s);"""
+    insert_listener_args = (user, listening, ip_address)
+    return fraidio.transact(insert_listener, insert_listener_args)
+
+def get_broadcast_json(username):
     # Get broadcast info
     get_broadcast_info = """SELECT spotifyTrackID, startTime, scrollTime FROM broadcast \
                         WHERE broadcastID IN (SELECT MAX(broadcastID) FROM broadcast WHERE spotifyUsername = %s);"""
-    get_broadcast_info_args = (host_spotify_username,)
+    get_broadcast_info_args = (username,)
     try:
         spotify_track_id, start_time, scroll_time = fradiodb.query(get_broadcast_info, get_broadcast_info_args)
     except:
@@ -84,11 +97,11 @@ def listen():
     track_time = int(posix_time() - start_time) + scroll_time
 
     # Format and send response with broadcast info
-    response = json.dumps({ 'status': 'OK',
-                            'spotify_track_id': spotify_track_id,
-                            'track_time': track_time,
-                            'server_time': posix_time()})
-    return response
+    j = json.dumps({'status': 'OK',
+                    'spotify_track_id': spotify_track_id,
+                    'track_time': track_time,
+                    'server_time': posix_time()})
+    return j
 
 def send_message_to_listeners(host_spotify_username, message):
 
