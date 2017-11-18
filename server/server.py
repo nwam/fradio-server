@@ -11,14 +11,10 @@ from flask import Flask
 from flask import request
 app = Flask(__name__)
 
-@app.route("/")
-def hello():
-    return "Hi"
-
 # Tell the fradio server what song a user is listening to
 @app.route("/broadcast")
 def broadcast():
-    broadcast = """INSERT INTO playing (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
+    broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
                     VALUES(%s, %s, %s, %s)"""
 
     # Get values from the request
@@ -37,13 +33,14 @@ def broadcast():
                             'spotify_track_id': spotify_track_id,
                             'start_time': start_time,
                             'scroll_time': scroll_time })
+
     return response
 
 # Let the client know what song the host_username is listening to, and when
 @app.route("/listen")
 def listen():
-    listen = """SELECT spotifyTrackID, startTime, scrollTime FROM playing \
-                        WHERE playingID IN (SELECT MAX(playingID) FROM playing WHERE spotifyUsername = %s);"""
+    listen = """SELECT spotifyTrackID, startTime, scrollTime FROM broadcast \
+                        WHERE broadcastID IN (SELECT MAX(broadcastID) FROM broadcast WHERE spotifyUsername = %s);"""
 
     # Get values from the request
     host_spotify_username = request.args.get('spotifyusername', type = str)
@@ -53,7 +50,7 @@ def listen():
     try:
         spotify_track_id, start_time, scroll_time = fradiodb.query(listen, listen_args)
     except:
-        return json.dumps({'status':'NOT_OK'})
+        return json.dumps({'status':'Error: The requested user could not be found'})
 
     track_time = int(posix_time() - start_time) + scroll_time
 
