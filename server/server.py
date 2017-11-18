@@ -44,7 +44,7 @@ def broadcast():
                             'scroll_time': scroll_time })
 
     # Let listeners know about the broadcast
-    send_broadcast_to_listeners(spotify_username, response);
+    send_broadcast_to_listeners(spotify_username, get_broadcast_json(spotify_username));
 
     return response
 
