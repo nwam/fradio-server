@@ -1,7 +1,7 @@
 import os, sys
 import datetime
 import time
-import urllib
+import socket
 import json
 sys.path.append(os.path.dirname(__file__))
 import fradiodb
@@ -11,11 +11,15 @@ from flask import Flask
 from flask import request
 app = Flask(__name__)
 
+CLIENT_PORT = 16987
+ENCODING = 'utf-8'
+
 @app.route("/")
 def hi():
     return "Hi"
 
 # Tell the fradio server what song a user is listening to
+# And tell all the listeners about the song change
 @app.route("/broadcast")
 def broadcast():
     # Get values from the request
@@ -40,7 +44,7 @@ def broadcast():
                             'scroll_time': scroll_time })
 
     # Let listeners know about the broadcast
-    send_broadcast_to_listeners(spotify_username);
+    send_broadcast_to_listeners(spotify_username, response);
 
     return response
 
@@ -80,26 +84,59 @@ def listen():
     track_time = int(posix_time() - start_time) + scroll_time
 
     # Format and send response with broadcast info
-    response = json.dumps({  'status': 'OK',
+    response = json.dumps({ 'status': 'OK',
                             'spotify_track_id': spotify_track_id,
                             'track_time': track_time,
                             'server_time': posix_time()})
     return response
 
-def send_broadcast_to_listeners(host_spotify_username):
-    pass
-#    # Get list of listeners
-#    get_listener_ips = """SELECT ipAddress FROM user WHERE listening = %s"""
-#    get_listener_ips_args = (host_spotify_username,)
-#    listner_ips = fradiodb.query_all(get_listener_ips, get_listener_ips_args)
-#
-#    # Send broadcast to list of listeners
-#    for listener_ip in listner_ips:
-#        listener_ip = listener_ip[0] # because listener_ips is a tuple of tuples
-#        http = urllib.PoolManager()
-#        request = http.request('POST', listener_ip 
+def send_message_to_listeners(host_spotify_username, message):
+    # format broadcast message
+    message = prepend_message_size(message)
 
+    # Get list of listeners
+    get_listener_ips = """SELECT ipAddress FROM user WHERE listening = %s"""
+    get_listener_ips_args = (host_spotify_username,)
+    listner_ips = fradiodb.query_all(get_listener_ips, get_listener_ips_args)
 
+    # Send message to list of listeners
+    for listener_ip in listner_ips:
+        listener_ip = listener_ip[0] # because listener_ips is a tuple of tuples
+        
+        send_tcp_message(listener_ip, CLIENT_PORT, message)
+
+def send_tcp_message(ip, port, message):
+    sock = _connect_tcp((ip, port))
+    
+    if sock is None:
+        return None
+    sock.send(bytes(message, ENCODING))
+    sock.close()
+
+    print("Sent message to {}:{}:\n{}".format(ip,port,message))
+
+    return None
+
+def _connect_tcp(connectinfo):
+    """
+    Connect to the device using the given IP, port pairing
+    :return: The created TCP socket.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #sock.settimeout(120)
+    sock.settimeout(10)
+    try:
+        sock.connect(connectinfo)
+    except OSError as e:
+        print('Connection error')
+        print(str(e))
+        return None
+    except (EOFError, KeyboardInterrupt):
+        print('Connect cancelled')
+        return None
 
 def posix_time():
     return int(time.time()*1000)
+
+def prepend_message_size(message):
+    return 
