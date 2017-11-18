@@ -12,7 +12,7 @@ CREATE TABLE broadcast(
 
 CREATE TABLE user (
     spotifyUsername VARCHAR(128),
-    spotifyPassword VARCHAR(128),
+    listening VARCHAR(32),
+    ipAddress VARCHAR(32),
     PRIMARY KEY (spotifyUsername)
 );
-
