@@ -3,7 +3,6 @@ import datetime
 import time
 import socket
 import json
-#sys.path.insert(0, '/var/www/html/flaskapp')
 sys.path.append(os.path.dirname(__file__))
 import fradiodb
 
@@ -23,7 +22,7 @@ def hi():
 # And tell all the listeners about the song change
 @app.route("/broadcast")
 def broadcast():
-    # Get values from the request
+    # Get values from the incoming request
     spotify_username = request.args.get('spotifyusername', type = str)
     spotify_track_id = request.args.get('spotifytrackid', type = str) 
     scroll_time = request.args.get('scrolltime', type = int)
@@ -33,7 +32,7 @@ def broadcast():
     add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time)
 
     # Let listeners know about the broadcast
-    send_broadcast_to_listeners(spotify_username, get_broadcast_json(spotify_username));
+    send_message_to_listeners(spotify_username, get_broadcast_json(spotify_username));
 
     # Format and send response
     response = json.dumps({ 'status':'OK',
@@ -46,7 +45,7 @@ def broadcast():
 # Let the client know what song the host_username is listening to, and when
 @app.route("/listen")
 def listen():
-    # Get values from the request
+    # Get values from the incoming request
     host_spotify_username = request.args.get('hostspotifyusername', type = str) # TODO: change in client
     listener_spotify_username = request.args.get('listenerspotifyusername', type = str)
     request_ip_address = request.remote_addr
@@ -55,7 +54,7 @@ def listen():
     if user_exists(listener_spotify_username):
         update_user(listener_spotify_username, host_spotify_username, request_ip_address)
     else:
-        add_user(listener_spotify_username, rost_spotify_username, request_ip_address)
+        add_user(listener_spotify_username, host_spotify_username, request_ip_address)
 
     # Send broadcast info
     response = get_broadcast_json(host_spotify_username)
@@ -70,7 +69,7 @@ def add_broadcast(username, track_id, start_time, scroll_time):
 def user_exists(spotify_username):
     get_listener = """SELECT spotifyUsername FROM user WHERE spotifyUsername = %s"""
     get_listener_args = (spotify_username,)
-    listner = fraidio.query(get_listener, get_listener_args)
+    listener = fradiodb.query(get_listener, get_listener_args)
     return listener != None
 
 def update_user(user, listening, ip_address):
@@ -83,7 +82,7 @@ def add_user(user, listening, ip_address):
     insert_listener = """INSERT INTO user (spotifyUsername, listening, ipAddress) \
                             VALUES (%s, %s, %s);"""
     insert_listener_args = (user, listening, ip_address)
-    return fraidio.transact(insert_listener, insert_listener_args)
+    return fradiodb.transact(insert_listener, insert_listener_args)
 
 def get_broadcast_json(username):
     # Get broadcast info
