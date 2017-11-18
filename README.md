@@ -25,3 +25,4 @@
 - client sends system time of request to eliminate lag
 - add play/pause to request/db
 - account for broadcaster switching song by having client listen and having server send message to all listeners about song change (not ez)
+- validation for requests sent to server that get inserted into db
