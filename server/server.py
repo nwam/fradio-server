@@ -30,22 +30,17 @@ def broadcast():
     start_time = posix_time()
 
     # Send query to add broadcast
-    broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
-                    VALUES(%s, %s, %s, %s)"""
-    broadcast_args = (spotify_username, spotify_track_id, start_time, scroll_time)
-    fradiodb.transact(broadcast, broadcast_args)
+    add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time)
+
+    # Let listeners know about the broadcast
+    send_broadcast_to_listeners(spotify_username, get_broadcast_json(spotify_username));
 
     # Format and send response
-    response = "Broadcasting: User: {}, SongID: {}, Time: {}, Scroll Time: {}".format(spotify_username, spotify_track_id, start_time, scroll_time)
     response = json.dumps({ 'status':'OK',
                             'spotify_username': spotify_username,
                             'spotify_track_id': spotify_track_id,
                             'start_time': start_time,
                             'scroll_time': scroll_time })
-
-    # Let listeners know about the broadcast
-    send_broadcast_to_listeners(spotify_username, get_broadcast_json(spotify_username));
-
     return response
 
 # Let the client know what song the host_username is listening to, and when
@@ -62,9 +57,15 @@ def listen():
     else:
         add_user(listener_spotify_username, rost_spotify_username, request_ip_address)
 
-    # Return broadcast info
+    # Send broadcast info
     response = get_broadcast_json(host_spotify_username)
     return response
+
+def add_broadcast(username, track_id, start_time, scroll_time):
+    broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
+                    VALUES(%s, %s, %s, %s)"""
+    broadcast_args = (username, track_id, start_time, scroll_time)
+    return fradiodb.transact(broadcast, broadcast_args)
 
 def user_exists(spotify_username):
     get_listener = """SELECT spotifyUsername FROM user WHERE spotifyUsername = %s"""
