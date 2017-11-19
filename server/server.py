@@ -1,4 +1,4 @@
-mport os, sys
+import os, sys
 import datetime
 import time
 import socket

@@ -24,6 +24,7 @@
 # TODO
 - client sends system time of request to eliminate lag
 - account for broadcaster switching song by having client listen and having server send message to all listeners about song change (not ez)
+    - do this on a different thread than main
 - validation for requests sent to server that get inserted into db
 - add play/pause to request/db
 - requests for both hosts and listeners to stop broadcasting/listening

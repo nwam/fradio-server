@@ -7,7 +7,8 @@ CREATE TABLE broadcast(
     spotifyUsername VARCHAR(128), 
     spotifyTrackID VARCHAR(128),
     startTime BIGINT, 
-    scrollTime BIGINT
+    scrollTime BIGINT,
+    trackLength BIGINT
 );
 
 CREATE TABLE user (
