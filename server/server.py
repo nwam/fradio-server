@@ -69,7 +69,7 @@ def get_streamers():
     streamers = fradiodb.query_all(get_streamers);  
     streamers = [streamer[0] for streamer in streamers]
 
-    response = json.dumps(streamers)
+    response = json.dumps({'streamers':streamers})
     return response
 
 def add_broadcast(username, track_id, start_time, scroll_time, trackLength):
