@@ -60,6 +60,17 @@ def listen():
     response = get_broadcast_json(host_spotify_username)
     return response
 
+# Returns list of streamers to listen to
+# (all of them for now)
+@app.route("/streamers")
+def get_streamers():
+    get_streamers = """SELECT DISTINCT spotifyUsername FROM broadcast;"""
+    streamers = fradiodb.query_all(get_streamers);  
+    streamers = [streamer[0] for streamer in streamers]
+
+    response = json.dumps(streamers)
+    return response
+
 def add_broadcast(username, track_id, start_time, scroll_time):
     broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
                     VALUES(%s, %s, %s, %s)"""
@@ -117,14 +128,14 @@ def send_message_to_listeners(host_spotify_username, message):
         send_tcp_message(listener_ip, CLIENT_PORT, message)
 
 def send_tcp_message(ip, port, message):
-    sock = _connect_tcp((ip, port))
-    
+    sock = _connect_tcp((ip,port))
+    print("Sending message to {}:{}:\n{}".format(ip,port,message))
+
     if sock is None:
         return None
     sock.send(prepend_message_size(bytes(message, ENCODING)))
     sock.close()
 
-    print("Sent message to {}:{}:\n{}".format(ip,port,message))
 
     return None
 
@@ -134,7 +145,6 @@ def _connect_tcp(connectinfo):
     :return: The created TCP socket.
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #sock.settimeout(120)
     sock.settimeout(10)
     try:
         sock.connect(connectinfo)
