@@ -1,4 +1,4 @@
-import os, sys
+mport os, sys
 import datetime
 import time
 import socket
@@ -24,8 +24,8 @@ def hi():
 def broadcast():
     # Get values from the incoming request
     spotify_username = request.args.get('spotifyusername', type = str)
-    spotify_track_id = request.args.get('spotifytrackid', type = str) 
-    scroll_time = request.args.get('scrolltime', type = int)
+    spotify_track_id = request.args.get('trackid', type = str) 
+    scroll_time = request.args.get('t', type = int)
     start_time = posix_time()
 
     # Send query to add broadcast
