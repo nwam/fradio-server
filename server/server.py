@@ -26,20 +26,21 @@ def broadcast():
     spotify_username = request.args.get('spotifyusername', type = str)
     spotify_track_id = request.args.get('trackid', type = str) 
     scroll_time = request.args.get('t', type = int)
+    track_length = request.args.get('len', type = int)
     start_time = posix_time()
 
     # Send query to add broadcast
-    add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time)
+    add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time, track_length)
 
     # Let listeners know about the broadcast
     send_message_to_listeners(spotify_username, get_broadcast_json(spotify_username));
 
     # Format and send response
-    response = json.dumps({ 'status':'OK',
-                            'spotify_username': spotify_username,
-                            'spotify_track_id': spotify_track_id,
-                            'start_time': start_time,
-                            'scroll_time': scroll_time })
+    response = json.dumps({ 'status':'OK' })
+                            #'spotify_username': spotify_username,
+                            #'spotify_track_id': spotify_track_id,
+                            #'start_time': start_time,
+                            #'scroll_time': scroll_time })
     return response
 
 # Let the client know what song the host_username is listening to, and when
@@ -71,10 +72,10 @@ def get_streamers():
     response = json.dumps(streamers)
     return response
 
-def add_broadcast(username, track_id, start_time, scroll_time):
-    broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime) \
-                    VALUES(%s, %s, %s, %s)"""
-    broadcast_args = (username, track_id, start_time, scroll_time)
+def add_broadcast(username, track_id, start_time, scroll_time, trackLength):
+    broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime, trackLength) \
+                    VALUES(%s, %s, %s, %s, %s)"""
+    broadcast_args = (username, track_id, start_time, scroll_time, trackLength)
     return fradiodb.transact(broadcast, broadcast_args)
 
 def user_exists(spotify_username):
@@ -97,11 +98,11 @@ def add_user(user, listening, ip_address):
 
 def get_broadcast_json(username):
     # Get broadcast info
-    get_broadcast_info = """SELECT spotifyTrackID, startTime, scrollTime FROM broadcast \
+    get_broadcast_info = """SELECT spotifyTrackID, startTime, scrollTime, trackLength FROM broadcast \
                         WHERE broadcastID IN (SELECT MAX(broadcastID) FROM broadcast WHERE spotifyUsername = %s);"""
     get_broadcast_info_args = (username,)
     try:
-        spotify_track_id, start_time, scroll_time = fradiodb.query(get_broadcast_info, get_broadcast_info_args)
+        spotify_track_id, start_time, scroll_time, track_length = fradiodb.query(get_broadcast_info, get_broadcast_info_args)
     except:
         return json.dumps({'status':'Error: The requested user could not be found'})
 
@@ -111,7 +112,8 @@ def get_broadcast_json(username):
     j = json.dumps({'status': 'OK',
                     'spotify_track_id': spotify_track_id,
                     'track_time': track_time,
-                    'server_time': posix_time()})
+                    'server_time': posix_time(),
+                    'track_length' : track_length})
     return j
 
 def send_message_to_listeners(host_spotify_username, message):
