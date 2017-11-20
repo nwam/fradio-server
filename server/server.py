@@ -54,7 +54,7 @@ def listen():
     request_ip_address = request.remote_addr
     
     # Update listener status
-    if user_exists(listener_spotify_username):
+    if fradiodb.user_exists(listener_spotify_username):
         fradiodb.update_user(listener_spotify_username, host_spotify_username, request_ip_address)
     else:
         fradiodb.add_user(listener_spotify_username, host_spotify_username, request_ip_address)
