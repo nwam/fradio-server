@@ -66,17 +66,22 @@ def listen():
 # Let the db know that a user is not listening
 @app.route("/stop_listen")
 def stop_listen():
-    username = request.args.get('user', type = str) 
+    username = request.args.get('spotifyusername', type = str) 
     fradiodb.stop_listening(username)
     return json.dumps({'status': STATUS_OK })
 
 # Let the db know that a user is not streaming
 @app.route("/stop_stream")
 def stop_stream():
-    username = request.args.get('user', type = str) 
+    username = request.args.get('spotifyusername', type = str) 
     fradiodb.stop_streaming(username)
     return json.dumps({'status': STATUS_OK })
-    
+
+@app.route("/disconnect")
+def disconnet():
+    username = request.args.get('spotifyusername', type = str) 
+    fradiodb.disconnect_user(username)
+    return json.dumps({'status': STATUS_OK })
 
 # Returns list of all users who are currently streaming
 @app.route("/streamers")
