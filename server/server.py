@@ -27,7 +27,7 @@ def broadcast():
     spotify_track_id = request.args.get('trackid', type = str) 
     scroll_time = request.args.get('t', type = int)
     track_length = request.args.get('len', type = int)
-    is_playing = request.args.get('isplaying', type = int)
+    is_playing = request.args.get('playing', type = int)
     start_time = posix_time()
 
     # Send query to add broadcast

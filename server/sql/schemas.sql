@@ -4,7 +4,7 @@ USE fradio;
 
 CREATE TABLE broadcast( 
     broadcastID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    spotifyUsername VARCHAR(128), 
+    spotifyUsername VARCHAR(64), 
     spotifyTrackID VARCHAR(128),
     isPlaying INTEGER,
     startTime BIGINT, 
@@ -13,8 +13,8 @@ CREATE TABLE broadcast(
 );
 
 CREATE TABLE user (
-    spotifyUsername VARCHAR(128),
-    listening VARCHAR(32),
+    spotifyUsername VARCHAR(64),
+    listening VARCHAR(64),
     ipAddress VARCHAR(32),
     PRIMARY KEY (spotifyUsername)
 );
