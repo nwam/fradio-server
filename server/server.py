@@ -86,13 +86,21 @@ def disconnet():
 # Returns list of all users who are currently streaming
 @app.route("/streamers")
 def get_streamers():
-    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying < 2 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) and startTime + trackLength - scrollTime < UNIX_TIMESTAMP();"""
-    streamers = fradiodb.query_all(get_streamers);  
+    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying < 2 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) AND startTime + trackLength - scrollTime + 1000 > UNIX_TIMESTAMP() * 1000;"""
+    streamers = fradiodb.query_all(get_streamers)
+    streamers = [{'name':streamer[0], 'status':streamer[1]} for streamer in streamers]
 
     response = json.dumps(streamers)
+    response = '{"streamers":' + response + '}'
     return response
 
 # Get a list of all users and their current status
-@app.route("/broadcasters")
+@app.route("/users")
 def get_users():
-    pass
+    get_users = """SELECT spotifyUsername, listening FROM user;"""
+    users = fradiodb.query_all(get_users)
+    users = [{'name':user[0], 'listening':user[1]} for user in users]
+
+    response = json.dumps(users)
+    response = '{"users":' + response + '}'
+    return response
