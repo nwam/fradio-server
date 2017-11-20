@@ -1,5 +1,12 @@
 import MySQLdb
+import json
 import util
+
+STATUS_OK = "OK"
+
+IS_PLAYING = 0
+IS_PAUSED = 1
+IS_STOPPED = 2
 
 ############################
 # Generic db helper methods
