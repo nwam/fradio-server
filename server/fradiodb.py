@@ -1,4 +1,5 @@
 import MySQLdb
+import util
 
 ############################
 # Generic db helper methods
@@ -69,14 +70,14 @@ def get_broadcast_json(username):
     except:
         return json.dumps({'status':'Error: The requested user could not be found'})
 
-    track_time = int(posix_time() - start_time) + scroll_time
+    track_time = int(util.posix_time() - start_time) + scroll_time
 
     # Format and send response with broadcast info
     j = json.dumps({'status': STATUS_OK,
                     'broadcast_id': broadcast_id,
                     'spotify_track_id': spotify_track_id,
                     'track_time': track_time,
-                    'server_time': posix_time(),
+                    'server_time': util.posix_time(),
                     'track_length' : track_length,
                     'is_playing': is_playing})
 
