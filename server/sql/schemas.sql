@@ -6,7 +6,7 @@ CREATE TABLE broadcast(
     broadcastID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     spotifyUsername VARCHAR(128), 
     spotifyTrackID VARCHAR(128),
-    isPlaying BOOLEAN,
+    isPlaying INTEGER,
     startTime BIGINT, 
     scrollTime BIGINT,
     trackLength BIGINT

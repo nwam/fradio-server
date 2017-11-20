@@ -27,7 +27,7 @@ def broadcast():
     spotify_track_id = request.args.get('trackid', type = str) 
     scroll_time = request.args.get('t', type = int)
     track_length = request.args.get('len', type = int)
-    is_playing = request.args.get('isplaying', type = bool)
+    is_playing = request.args.get('isplaying', type = int)
     start_time = posix_time()
 
     # Send query to add broadcast
@@ -48,7 +48,7 @@ def broadcast():
 @app.route("/listen")
 def listen():
     # Get values from the incoming request
-    host_spotify_username = request.args.get('hostspotifyusername', type = str) # TODO: change in client
+    host_spotify_username = request.args.get('hostspotifyusername', type = str) 
     listener_spotify_username = request.args.get('listenerspotifyusername', type = str)
     request_ip_address = request.remote_addr
     
@@ -99,11 +99,11 @@ def add_user(user, listening, ip_address):
 
 def get_broadcast_json(username):
     # Get broadcast info
-    get_broadcast_info = """SELECT spotifyTrackID, startTime, scrollTime, trackLength, broadcastID FROM broadcast \
+    get_broadcast_info = """SELECT spotifyTrackID, startTime, scrollTime, trackLength, broadcastID, isPlaying FROM broadcast \
                         WHERE broadcastID IN (SELECT MAX(broadcastID) FROM broadcast WHERE spotifyUsername = %s);"""
     get_broadcast_info_args = (username,)
     try:
-        spotify_track_id, start_time, scroll_time, track_length, broadcast_id = fradiodb.query(get_broadcast_info, get_broadcast_info_args)
+        spotify_track_id, start_time, scroll_time, track_length, broadcast_id, is_playing = fradiodb.query(get_broadcast_info, get_broadcast_info_args)
     except:
         return json.dumps({'status':'Error: The requested user could not be found'})
 
@@ -115,7 +115,9 @@ def get_broadcast_json(username):
                     'spotify_track_id': spotify_track_id,
                     'track_time': track_time,
                     'server_time': posix_time(),
-                    'track_length' : track_length})
+                    'track_length' : track_length,
+                    'is_playing': is_playing})
+
     return j
 
 def send_message_to_listeners(host_spotify_username, message):
