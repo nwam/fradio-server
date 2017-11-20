@@ -14,6 +14,13 @@ app = Flask(__name__)
 CLIENT_PORT = 16987
 ENCODING = 'utf-8'
 
+STATUS_OK = "OK"
+
+# values for broadcast.isPlaying
+IS_PLAYING = 0
+IS_PAUSED = 1
+IS_STOPPED = 2
+
 @app.route("/")
 def hi():
     return "Hi"
@@ -33,16 +40,12 @@ def broadcast():
     # Send query to add broadcast
     add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time, track_length, is_playing)
 
+    # The hack is living on :'(
     # Let listeners know about the broadcast
     # send_message_to_listeners(spotify_username, get_broadcast_json(spotify_username));
 
     # Format and send response
-    response = json.dumps({ 'status':'OK' })
-                            #'spotify_username': spotify_username,
-                            #'spotify_track_id': spotify_track_id,
-                            #'start_time': start_time,
-                            #'scroll_time': scroll_time })
-    return response
+    return json.dumps({ 'status':STATUS_OK })
 
 # Let the client know what song the host_username is listening to, and when
 @app.route("/listen")
@@ -62,8 +65,22 @@ def listen():
     response = get_broadcast_json(host_spotify_username)
     return response
 
-# Returns list of streamers to listen to
-# (all of them for now)
+# Let the db know that a user is not listening
+@app.route("/stop_listen")
+def stop_listen():
+    username = request.args.get('user', type = str) 
+    stop_listening(username)
+    return json.dumps({'status': STATUS_OK })
+
+# Let the db know that a user is not streaming
+@app.route("/stop_stream")
+def stop_stream():
+    username = request.args.get('user', type = str) 
+    stop_streaming(username)
+    return json.dumps({'status': STATUS_OK })
+    
+
+# Returns list of all users who are currently streaming
 @app.route("/streamers")
 def get_streamers():
     get_streamers = """SELECT DISTINCT spotifyUsername FROM broadcast;"""
@@ -72,6 +89,11 @@ def get_streamers():
 
     response = json.dumps({'streamers':streamers})
     return response
+
+# Get a list of all users and their current status
+@app.route("/users")
+def get_users():
+    pass
 
 def add_broadcast(username, track_id, start_time, scroll_time, trackLength, is_playing):
     broadcast = """INSERT INTO broadcast (spotifyUsername, spotifyTrackID, startTime, scrollTime, trackLength, isPlaying) \
@@ -89,7 +111,6 @@ def update_user(user, listening, ip_address):
     listen = """UPDATE user SET listening = %s, ipAddress = %s WHERE spotifyUsername = %s;"""
     listen_args = (listening, ip_address, user)
     return fradiodb.transact(listen, listen_args)
-
 def add_user(user, listening, ip_address):
     # Insert listener
     insert_listener = """INSERT INTO user (spotifyUsername, listening, ipAddress) \
@@ -110,7 +131,7 @@ def get_broadcast_json(username):
     track_time = int(posix_time() - start_time) + scroll_time
 
     # Format and send response with broadcast info
-    j = json.dumps({'status': 'OK',
+    j = json.dumps({'status': STATUS_OK,
                     'broadcast_id': broadcast_id,
                     'spotify_track_id': spotify_track_id,
                     'track_time': track_time,
@@ -119,6 +140,24 @@ def get_broadcast_json(username):
                     'is_playing': is_playing})
 
     return j
+
+def disconnect_user(user):
+    stop_listening(user)
+    stop_streaming(user)
+
+def stop_listening(user):
+    stop_listening = """UPDATE user SET listening = NULL WHERE spotifyUsername = %s;"""
+    stop_listening_args = (user,)
+    return fradiodb.transact(stop_listening, stop_listening_args);
+
+def stop_streaming(user):
+    stop_streaming = """INSERT INTO broadcast (spotifyUsername, isPlaying) \
+                        VALUES (%s, %s);"""
+    stop_streaming_args = (user, IS_STOPPED)
+    return fradiodb.transact(stop_streaming, stop_streaming_args);
+
+def archive_broadcasts():
+   pass 
 
 def send_message_to_listeners(host_spotify_username, message):
 
