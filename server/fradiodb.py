@@ -8,6 +8,10 @@ IS_PLAYING = 1
 IS_PAUSED = 0
 IS_STOPPED = -1
 
+USERSTATUS_LISTENING = "L"
+USERSTATUS_STREAMING = "S"
+USERSTATUS_INACTIVE = "I"
+
 ############################
 # Generic db helper methods
 ############################
@@ -98,10 +102,28 @@ def get_streamers():
     return streamers
 
 def get_users():
-    get_users = """SELECT spotifyUsername, listening FROM user;"""
-    users = query_all(get_users)
-    users = [{'name':user[0], 'listening':user[1]} for user in users]
-    return users
+    # get all users
+    get_users_q = """SELECT spotifyUsername, listening FROM user;"""
+    users = query_all(get_users_q)
+    users = [{'name':user[0], 'status':USERSTATUS_LISTENING, 'listening':user[1]} for user in users]
+
+    # get streaming users
+    get_streamers_q = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) AND startTime + trackLength - scrollTime + 1000 > UNIX_TIMESTAMP() * 1000;""" 
+    streamers = query_all(get_streamers_q)
+    streamers = [{'name':streamer[0], 'status':USERSTATUS_STREAMING, 'is_playing':streamer[1]} for streamer in streamers]
+
+    # remove streamers from list of listeners
+    listeners = [user for user in users if user['name'] not in [streamer['name'] for streamer in streamers]]
+    
+    # set non-listening listeners as inactive
+    for listener in listeners:
+        if listener['listening'] is None:
+            listener['status'] = USERSTATUS_INACTIVE
+            listener.pop('listening', None)
+    
+    everyone = streamers + listeners
+
+    return everyone
 
 def disconnect_user(user):
     stop_listening(user)
