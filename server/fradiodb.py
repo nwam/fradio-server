@@ -91,7 +91,7 @@ def get_broadcast_json(username):
     return j
 
 def get_streamers():
-    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= {} AND broadcastID IN (SELECT MAX(broadcastID) AND UNIX_TIMESTAMP()*1000 < (startTime + trackLength - scrollTime + 1000) FROM broadcast GROUP BY spotifyUsername); """.format(IS_PAUSED)
+    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) AND startTime + trackLength - scrollTime + 1000 > UNIX_TIMESTAMP() * 1000;""" 
     streamers = query_all(get_streamers)
     streamers = [{'name':streamer[0], 'status':streamer[1]} for streamer in streamers]
    
