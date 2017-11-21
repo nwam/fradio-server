@@ -24,5 +24,6 @@ CREATE TABLE track (
     artist VARCHAR(64),
     album VARCHAR(64),
     song VARCHAR(64),
+    len BIGINT,
     PRIMARY KEY (spotifyTrackID)
 );
