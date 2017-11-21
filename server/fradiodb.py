@@ -90,6 +90,19 @@ def get_broadcast_json(username):
 
     return j
 
+def get_streamers():
+    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= {} AND broadcastID IN (SELECT MAX(broadcastID) AND UNIX_TIMESTAMP()*1000 < (startTime + trackLength - scrollTime + 1000) FROM broadcast GROUP BY spotifyUsername); """.format(IS_PAUSED)
+    streamers = query_all(get_streamers)
+    streamers = [{'name':streamer[0], 'status':streamer[1]} for streamer in streamers]
+   
+    return streamers
+
+def get_users():
+    get_users = """SELECT spotifyUsername, listening FROM user;"""
+    users = query_all(get_users)
+    users = [{'name':user[0], 'listening':user[1]} for user in users]
+    return users
+
 def disconnect_user(user):
     stop_listening(user)
     stop_streaming(user)

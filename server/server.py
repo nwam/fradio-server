@@ -82,12 +82,7 @@ def disconnect():
 # Returns list of all users who are currently streaming
 @app.route("/streamers")
 def get_streamers():
-
-    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) AND UNIX_TIMESTAMP()*1000 < (startTime + trackLength - scrollTime + 1000) FROM broadcast GROUP BY spotifyUsername); """
-   
-    streamers = fradiodb.query_all(get_streamers)
-    streamers = [{'name':streamer[0], 'status':streamer[1]} for streamer in streamers]
-
+    streamers = fradiodb.get_streamers()
     response = json.dumps(streamers)
     response = '{"streamers":' + response + '}'
     return response
@@ -95,10 +90,7 @@ def get_streamers():
 # Get a list of all users and their current status
 @app.route("/users")
 def get_users():
-    get_users = """SELECT spotifyUsername, listening FROM user;"""
-    users = fradiodb.query_all(get_users)
-    users = [{'name':user[0], 'listening':user[1]} for user in users]
-
+    users = fradiodb.get_users()
     response = json.dumps(users)
     response = '{"users":' + response + '}'
     return response
