@@ -4,9 +4,9 @@ import util
 
 STATUS_OK = "OK"
 
-IS_PLAYING = 0
-IS_PAUSED = 1
-IS_STOPPED = 2
+IS_PLAYING = 1
+IS_PAUSED = 0
+IS_STOPPED = -1
 
 ############################
 # Generic db helper methods
@@ -106,9 +106,3 @@ def stop_streaming(user):
                         VALUES (%s, %s);"""
     stop_streaming_args = (user, IS_STOPPED)
     return transact(stop_streaming, stop_streaming_args);
-
-# TODO: archive all broadcasts 
-# except most recent broadcast from each user
-def archive_broadcasts():
-   pass 
-

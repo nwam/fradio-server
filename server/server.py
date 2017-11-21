@@ -14,11 +14,6 @@ ENCODING = 'utf-8'
 
 STATUS_OK = "OK"
 
-# values for broadcast.isPlaying
-IS_PLAYING = 0
-IS_PAUSED = 1
-IS_STOPPED = 2
-
 @app.route("/")
 def hi():
     return "Hi"
@@ -27,7 +22,6 @@ def hi():
 # And tell all the listeners about the song change
 @app.route("/broadcast")
 def broadcast():
-    _update_isplaying()
 
     # Get values from the incoming request
     spotify_username = request.args.get('spotifyusername', type = str)
@@ -88,9 +82,8 @@ def disconnect():
 # Returns list of all users who are currently streaming
 @app.route("/streamers")
 def get_streamers():
-    _update_isplaying()
 
-    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying < 2 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername); """
+    get_streamers = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) AND UNIX_TIMESTAMP()*1000 < (startTime + trackLength - scrollTime + 1000) FROM broadcast GROUP BY spotifyUsername); """
    
     streamers = fradiodb.query_all(get_streamers)
     streamers = [{'name':streamer[0], 'status':streamer[1]} for streamer in streamers]
@@ -110,6 +103,3 @@ def get_users():
     response = '{"users":' + response + '}'
     return response
 
-def _update_isplaying():
-    update_isplaying_q = """ UPDATE broadcast SET isPlaying = 0 WHERE (startTime + trackLength - scrollTime + 1000) < UNIX_TIMESTAMP() * 1000; """
-    fradiodb.query_all(update_isplaying_q)
