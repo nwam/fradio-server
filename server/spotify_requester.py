@@ -82,12 +82,18 @@ def get_track_info(track_id):
     track_head = {'Authorization' : '{} {}'.format(
         TOKEN_TYPE, #access_token_json['token_type'], 
         access_token)}
-    try:
-        req = urllib.request.Request(   URL_GET_TRACK + track_id,
-                                        headers = track_head)
-        res = urllib.request.urlopen(req)
-    except:
-        logging.error("Error getting track information from Spotify")
+
+    # Get a new token if the first one doest work
+    for i in range(2):
+        try:
+            req = urllib.request.Request(   URL_GET_TRACK + track_id,
+                                            headers = track_head)
+            res = urllib.request.urlopen(req)
+            break
+        except:
+            logging.error("Error getting track information from Spotify")
+            access_token = _get_new_access_token(CLIENT_ID_SECRET)
+            return None
 
     track_json = json.loads(res.read().decode(ENCODING))
 

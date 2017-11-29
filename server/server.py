@@ -97,4 +97,3 @@ def get_users():
     response = json.dumps(users)
     response = '{"users":' + response + '}'
     return response
-

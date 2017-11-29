@@ -109,9 +109,9 @@ def get_users():
     users = [{'name':user[0], 'status':USERSTATUS_LISTENING, 'listening':user[1]} for user in users]
 
     # get streaming users
-    get_streamers_q = """SELECT spotifyUsername, isPlaying FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) AND startTime + trackLength - scrollTime + 1000 > UNIX_TIMESTAMP() * 1000;""" 
+    get_streamers_q = """SELECT spotifyUsername, isPlaying, spotifyTrackID FROM broadcast WHERE isPlaying >= 0 AND broadcastID IN (SELECT MAX(broadcastID) FROM broadcast GROUP BY spotifyUsername) AND startTime + trackLength - scrollTime + 1000 > UNIX_TIMESTAMP() * 1000;""" 
     streamers = query_all(get_streamers_q)
-    streamers = [{'name':streamer[0], 'status':USERSTATUS_STREAMING, 'is_playing':streamer[1]} for streamer in streamers]
+    streamers = [{'name':streamer[0], 'status':USERSTATUS_STREAMING, 'is_playing':streamer[1], 'track_info':get_track_info(streamer[2])} for streamer in streamers]
 
     # remove streamers from list of listeners
     listeners = [user for user in users if user['name'] not in [streamer['name'] for streamer in streamers]]
@@ -143,14 +143,26 @@ def stop_streaming(user):
     stop_streaming_args = (user, IS_STOPPED)
     return transact(stop_streaming, stop_streaming_args);
 
-def get_track_info(trackID):
+def get_track_info(track_id):
+    track_id = track_id.split(':')[-1]
     get_track_info_q = """SELECT artist,album,title,art_url,art_thumb_url FROM track
                             WHERE spotifyTrackID = %s"""
-    get_track_info_args = (trackID,)
-    return query(get_track_info_q, get_track_info_args)
+    get_track_info_args = (track_id,)
+    res = query(get_track_info_q, get_track_info_args)
+
+    if res is None:
+        return res
+
+    track_info = {  'artist':res[0],
+                    'album':res[1],
+                    'title':res[2],
+                    'art_url':res[3],
+                    'art_thumb_url':res[4]}
+    return track_info
 
 # Store track information from spotify
 def store_track_info(track_id):
+    track_id = track_id.split(':')[-1]
     if get_track_info(track_id) is not None:
         return 0
 
@@ -158,6 +170,8 @@ def store_track_info(track_id):
                             VALUES (%s, %s, %s, %s, %s, %s);"""
 
     track_info = spotify_requester.get_track_info(track_id)
+    if track_info is None:
+        return 0
     store_track_info_args = (   track_info['id'],
                                 track_info['artists'][0],
                                 track_info['album'],
