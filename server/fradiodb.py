@@ -1,6 +1,7 @@
 import MySQLdb
 import json
 import util
+import spotify_requester
 
 STATUS_OK = "OK"
 
@@ -141,6 +142,29 @@ def stop_streaming(user):
                         VALUES (%s, %s);"""
     stop_streaming_args = (user, IS_STOPPED)
     return transact(stop_streaming, stop_streaming_args);
+
+def get_track_info(trackID):
+    get_track_info_q = """SELECT artist,album,title,art_url,art_thumb_url FROM track
+                            WHERE spotifyTrackID = %s"""
+    get_track_info_args = (trackID,)
+    return query(get_track_info_q, get_track_info_args)
+
+# Store track information from spotify
+def store_track_info(track_id):
+    if get_track_info(track_id) is not None:
+        return 0
+
+    store_track_info_q = """INSERT INTO track (spotifyTrackID, artist, album, title, art_url, art_thumb_url)
+                            VALUES (%s, %s, %s, %s, %s, %s);"""
+
+    track_info = spotify_requester.get_track_info(track_id)
+    store_track_info_args = (   track_info['id'],
+                                track_info['artists'][0],
+                                track_info['album'],
+                                track_info['track'],
+                                track_info['art_url'],
+                                track_info['art_thumb_url'])
+    return transact(store_track_info_q, store_track_info_args)
 
 def store_access_token(value, expire):
     store_access_token_q = """UPDATE token SET value = %s, expire = %s;"""

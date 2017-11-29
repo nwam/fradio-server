@@ -106,7 +106,8 @@ def get_track_info(track_id):
     except:
         logging.error("Failed to parse track info json: {}".format(track_json))
     
-    track_info = {  'artists' : artists,
+    track_info = {  'id': track_id,
+                    'artists' : artists,
                     'album' : album,
                     'track' : track,
                     'art_url' : art_url,

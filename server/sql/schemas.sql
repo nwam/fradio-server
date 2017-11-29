@@ -23,7 +23,7 @@ CREATE TABLE track (
     spotifyTrackID VARCHAR(128),
     artist VARCHAR(128),
     album VARCHAR(128),
-    song VARCHAR(128),
+    title VARCHAR(128),
     art_url VARCHAR(256),
     art_thumb_url VARCHAR(256),
     PRIMARY KEY (spotifyTrackID)

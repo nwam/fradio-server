@@ -31,6 +31,9 @@ def broadcast():
     is_playing = request.args.get('playing', type = int)
     start_time = util.posix_time()
 
+    # Add track information to db
+    fradiodb.store_track_info(spotify_track_id)
+
     # Send query to add broadcast
     fradiodb.add_broadcast(spotify_username, spotify_track_id, start_time, scroll_time, track_length, is_playing)
 
