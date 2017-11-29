@@ -142,5 +142,12 @@ def stop_streaming(user):
     stop_streaming_args = (user, IS_STOPPED)
     return transact(stop_streaming, stop_streaming_args);
 
-# Store track information from spotify
+def store_access_token(value, expire):
+    store_access_token_q = """UPDATE token SET value = %s, expire = %s;"""
+    store_access_token_args = (value, expire)
+    return transact(store_access_token_q, store_access_token_args)
 
+def get_access_token():
+    get_access_token_q = """SELECT value, expire FROM token;"""
+    value, expire = query(get_access_token_q)
+    return (value, int(expire))

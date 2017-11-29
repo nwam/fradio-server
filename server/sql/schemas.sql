@@ -21,9 +21,16 @@ CREATE TABLE user (
 
 CREATE TABLE track (
     spotifyTrackID VARCHAR(128),
-    artist VARCHAR(64),
-    album VARCHAR(64),
-    song VARCHAR(64),
-    len BIGINT,
+    artist VARCHAR(128),
+    album VARCHAR(128),
+    song VARCHAR(128),
+    art_url VARCHAR(256),
+    art_thumb_url VARCHAR(256),
     PRIMARY KEY (spotifyTrackID)
 );
+
+CREATE TABLE token (
+    value VARCHAR(128), 
+    expire BIGINT NOT NULL DEFAULT 0
+);
+INSERT INTO token (value, expire) VALUES("", 0);
