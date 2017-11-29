@@ -43,7 +43,7 @@ def transact(q, args=None):
 
 
 ###########################
-# Non-generic db functions
+# Fradio-specific functions
 ###########################
 
 def add_broadcast(username, track_id, start_time, scroll_time, trackLength, is_playing):
@@ -141,3 +141,6 @@ def stop_streaming(user):
                         VALUES (%s, %s);"""
     stop_streaming_args = (user, IS_STOPPED)
     return transact(stop_streaming, stop_streaming_args);
+
+# Store track information from spotify
+
