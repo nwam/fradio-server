@@ -16,7 +16,7 @@ STATUS_OK = "OK"
 
 @app.route("/")
 def hi():
-    return "Hi"
+    return "Say hello to the Fradio server"
 
 # Tell the fradio server what song a user is listening to
 # And tell all the listeners about the song change
