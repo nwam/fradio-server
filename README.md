@@ -1,30 +1,5 @@
-# Requests
-## start stream
-    - track id
-    - streamer id
-    - start time
+# Fradio
+Fradio is a music-sharing application which allows users to host a radio station for their friends and followers by simply listening to music on Spotify. 
 
-## join stream
-    - listener id
-    - streamer id
-
-## create/delete/update user
-    - user id
-    - other info
-
-## check for stream
-    - streamer id
-
-## follow
-    - listener id
-
-# Client
-## login
-
-# TODO
-- client sends system time of request to eliminate lag
-- account for broadcaster switching song by having client listen and having server send message to all listeners about song change (not ez)
-    - do this on a different thread than main
-- validation for requests sent to server that get inserted into db
-- add play/pause to request/db
-- requests for both hosts and listeners to stop broadcasting/listening
+## Fradio-Server
+This repository contains Fradio's server, which runs on Flask and a MySQL database. In order to make Fradio globally available, the server is currently deployed on an AWS EC2 instance.
