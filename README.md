@@ -3,3 +3,6 @@ Fradio is a music-sharing application which allows users to host a radio station
 
 ## Fradio-Server
 This repository contains Fradio's server, which runs on Flask and a MySQL database. In order to make Fradio globally available, the server is currently deployed on an AWS EC2 instance.
+
+## Fradio-Client
+Fradio has an Android client which is located in a [different repository](https://github.com/tetchel/fradio-client).
